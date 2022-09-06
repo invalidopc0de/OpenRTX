@@ -1758,6 +1758,7 @@ void ui_updateFSM(bool *sync_rtx)
 #endif
                         case D_TIMER:
                             _ui_changeTimer(-1);
+                            vp_announceDisplayTimer();
                             break;
                         default:
                             state.ui_screen = SETTINGS_DISPLAY;
@@ -1782,6 +1783,7 @@ void ui_updateFSM(bool *sync_rtx)
 #endif
                         case D_TIMER:
                             _ui_changeTimer(+1);
+                            vp_announceDisplayTimer();
                             break;
                         default:
                             state.ui_screen = SETTINGS_DISPLAY;
