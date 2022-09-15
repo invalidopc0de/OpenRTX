@@ -1135,17 +1135,18 @@ void ui_saveState()
 static float priorGPSSpeed = 0;
 static float priorGPSAltitude = 0;
 static float  priorGPSDirection = 500; // impossible value init.
+static uint8_t priorGPSFixQuality= 0;
+static uint8_t priorGPSFixType = 0;
+static uint8_t    priorSatellitesInView = 0;
 static uint32_t vpGPSLastUpdate = 0;
 
 static vpGPSInfoFlags_t GetGPSDirectionOrSpeedChanged()
 {
     if (!state.settings.gps_enabled) 
         return vpGPSNone;
-    if (state.gps_data.fix_quality == 0 || state.gps_data.fix_quality >= 6)
-        return vpGPSNone;
-
+    
     uint32_t now = getTick();
-    if (now - vpGPSLastUpdate < 10000)
+    if (now - vpGPSLastUpdate < 8000)
         return vpGPSNone;
     
     vpGPSInfoFlags_t whatChanged=  vpGPSNone;
@@ -1181,6 +1182,12 @@ static vpGPSInfoFlags_t GetGPSDirectionOrSpeedChanged()
     {
         whatChanged |= vpGPSDirection;
         priorGPSDirection = state.gps_data.tmg_true;
+    }
+    
+    if (state.gps_data.satellites_in_view != priorSatellitesInView)
+    {
+        whatChanged |= vpGPSSatCount;
+        priorSatellitesInView = state.gps_data.satellites_in_view;
     }
     
     if (whatChanged)
