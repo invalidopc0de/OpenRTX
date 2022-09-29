@@ -30,6 +30,7 @@
 #include <interfaces/radio.h>
 #include <event.h>
 #include <rtx.h>
+#include <rtxlink.h>
 #include <string.h>
 #include <utils.h>
 #include <input.h>
@@ -166,6 +167,9 @@ void *main_thread(void *arg)
 
         // Run state update task
         state_task();
+
+        // Run rtxlink/CAT task
+        rtxlink_task();
 
         // Run this loop once every 5ms
         time += 5;
