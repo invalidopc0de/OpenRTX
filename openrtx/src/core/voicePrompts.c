@@ -178,14 +178,16 @@ static void fetchCodec2Data(uint8_t *data, const size_t offset)
                      + sizeof(vpHeader_t)
                      + sizeof(tableOfContents)
                      + CODEC2_HEADER_SIZE;
-
-    if((dataPtr + 8) >= &_vpdata_end)
+    int bytesRemaining=&_vpdata_end-(dataPtr+offset);
+    int bytesToCopy=8;
+    if (bytesRemaining < 8)
     {
-        memset(data, 0x00, 8);
-        return;
-    }
+        bytesToCopy=bytesRemaining;
+        // pad to end of block with 0s.
+    memset(data, 0x00, 8);
+}
 
-    memcpy(data, dataPtr + offset, 8);
+    memcpy(data, dataPtr + offset, bytesToCopy);
     #endif
 }
 
@@ -597,15 +599,15 @@ void vp_tick()
 
         while (vpCurrentSequence.c2DataIndex < vpCurrentSequence.c2DataLength)
         {
+            // Do not push codec2 data if audio path is closed or suspended
+            if(audioPath_getStatus(vpAudioPath) != PATH_OPEN)
+                return;
+
             // push the codec2 data in lots of 8 byte frames.
             uint8_t c2Frame[8] = {0};
 
             fetchCodec2Data(c2Frame, vpCurrentSequence.c2DataStart +
                                      vpCurrentSequence.c2DataIndex);
-
-            // Do not push codec2 data if audio path is closed or suspended
-            if(audioPath_getStatus(vpAudioPath) != PATH_OPEN)
-                return;
 
             if (codec_pushFrame(c2Frame, false) == false)
                 return;
