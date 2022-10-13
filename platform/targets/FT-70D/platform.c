@@ -19,12 +19,15 @@
  ***************************************************************************/
 
 #include <interfaces/platform.h>
+#include <interfaces/gpio.h>
 #include <hwconfig.h>
 #include <stddef.h>
 
 void platform_init()
 {
-
+    // Configure GPIOs
+    gpio_setMode(GREEN_LED, OUTPUT);
+    gpio_setMode(RED_LED,   OUTPUT);
 }
 
 void platform_terminate()
@@ -64,12 +67,36 @@ bool platform_pwrButtonStatus()
 
 void platform_ledOn(led_t led)
 {
-    (void) led;
+    switch(led)
+    {
+        case GREEN:
+            gpio_setPin(GREEN_LED);
+            break;
+
+        case RED:
+            gpio_setPin(RED_LED);
+            break;
+
+        default:
+            break;
+    }
 }
 
 void platform_ledOff(led_t led)
 {
-    (void) led;
+    switch(led)
+    {
+        case GREEN:
+            gpio_clearPin(GREEN_LED);
+            break;
+
+        case RED:
+            gpio_clearPin(RED_LED);
+            break;
+
+        default:
+            break;
+    }
 }
 
 void platform_beepStart(uint16_t freq)

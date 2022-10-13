@@ -15,42 +15,43 @@
  *   along with this program; if not, see <http://www.gnu.org/licenses/>   *
  ***************************************************************************/
 
+#include <interfaces/gpio.h>
+
 #include "iodefine.h"
 #include "typedefine.h"
-#include <interfaces/gpio.h>
 
 enum REGS
 {
-    PnDDR  = 0x000,    // Data direction register
-    PnDR   = 0x3D0,    // Data register
-    PnPORT = 0x3C0,    // Port register
-    PnICR  = 0x010,    // Input buffer control register
-    PnPCR  = 0x028,    // Pull-up MOS control register
-    PnODR  = 0x03B     // Open-drain control register
-}
+    PnPORT = 0x000,  // Port register
+    PnDR   = 0x004,  // Data register
+    PnDDR  = 0x008,  // Data direction register
+    PnICR  = 0x00C,  // Input buffer control register
+    PnPCR  = 0x010,  // Pull-up MOS control register
+    PnODR  = 0x03B   // Open-drain control register
+};
 
-#define REG(x,y) (((uint8_t *) x) + y)
+#define REG(x, y) (((uint8_t*)x) + y)
 
-void gpio_setMode(void *port, uint8_t pin, enum Mode mode)
+void gpio_setMode(void* port, uint8_t pin, enum Mode mode)
 {
-    uint32_t p = (uint32_t) port;
+    uint32_t p = (uint32_t)port;
 
     // GPIO port 5 is input-only
-    if(p == (uint32_t)(P5)) return;
+    if (p == (uint32_t)(&P5)) return;
 
     // Reset open-drain setting, only for P2 and PF
-    if((p == ((uint32_t) P2)) || (p == ((uint32_t) PF)))
+    if ((p == ((uint32_t)&P2)) || (p == ((uint32_t)&PF)))
     {
         *REG(port, PnODR) &= ~(1 << pin);
     }
 
     // Reset pull-up setting, only for PD ... PK
-    if((p >= ((uint32_t) PD)) && (p <= ((uint32_t) PK)))
+    if ((p >= ((uint32_t)&PD)) && (p <= ((uint32_t)&PK)))
     {
         *REG(port, PnPCR) &= ~(1 << pin);
     }
 
-    switch(mode)
+    switch (mode)
     {
         case INPUT:
             *REG(port, PnDDR) &= ~(1 << pin);
@@ -58,10 +59,10 @@ void gpio_setMode(void *port, uint8_t pin, enum Mode mode)
 
         case INPUT_PULL_UP:
             // Only PD ... PK have pull-up control register.
-            if((p < ((uint32_t) PD)) || (p > ((uint32_t) PK))) return;
+            if ((p < ((uint32_t)&PD)) || (p > ((uint32_t)&PK))) return;
 
-            *REG(port, PnDDR) &= ~(1 << pin);   // Input mode
-            *REG(port, PnPCR) |=  (1 << pin);   // Enable pull-up
+            *REG(port, PnDDR) &= ~(1 << pin);  // Input mode
+            *REG(port, PnPCR) |= (1 << pin);   // Enable pull-up
             break;
 
         case OUTPUT:
@@ -70,10 +71,10 @@ void gpio_setMode(void *port, uint8_t pin, enum Mode mode)
 
         case OPEN_DRAIN:
             // Only P2 and PF have open drain capability.
-            if((p != ((uint32_t) P2)) && (p != ((uint32_t) PF))) return;
+            if ((p != ((uint32_t)&P2)) && (p != ((uint32_t)&PF))) return;
 
-            *REG(port, PnDDR) |= (1 << pin);    // Output mode
-            *REG(port, PnODR) |= (1 << pin);    // Enable open-drain
+            *REG(port, PnDDR) |= (1 << pin);  // Output mode
+            *REG(port, PnODR) |= (1 << pin);  // Enable open-drain
             break;
 
         case INPUT_PULL_DOWN:
@@ -86,47 +87,47 @@ void gpio_setMode(void *port, uint8_t pin, enum Mode mode)
     }
 }
 
-void gpio_setAlternateFunction(void *port, uint8_t pin, uint8_t afNum)
+void gpio_setAlternateFunction(void* port, uint8_t pin, uint8_t afNum)
 {
     // This device does not have GPIO alternate function selection
-    (void) port;
-    (void) pin;
-    (void) afNum;
+    (void)port;
+    (void)pin;
+    (void)afNum;
 }
 
-void gpio_setOutputSpeed(void *port, uint8_t pin, enum Speed spd)
+void gpio_setOutputSpeed(void* port, uint8_t pin, enum Speed spd)
 {
     // This device does not support setting of GPIO speed
-    (void) port;
-    (void) pin;
-    (void) spd;
+    (void)port;
+    (void)pin;
+    (void)spd;
 }
 
-void gpio_setPin(void *port, uint8_t pin)
+void gpio_setPin(void* port, uint8_t pin)
 {
     // GPIO port 5 is input-only
-    if((uint32_t)(port) == (uint32_t)(P5)) return;
+    if ((uint32_t)(port) == (uint32_t)(&P5)) return;
 
     *REG(port, PnDR) |= (1 << pin);
 }
 
-void gpio_clearPin(void *port, uint8_t pin)
+void gpio_clearPin(void* port, uint8_t pin)
 {
     // GPIO port 5 is input-only
-    if((uint32_t)(port) == (uint32_t)(P5)) return;
+    if ((uint32_t)(port) == (uint32_t)(&P5)) return;
 
     *REG(port, PnDR) &= ~(1 << pin);
 }
 
-void gpio_togglePin(void *port, uint8_t pin)
+void gpio_togglePin(void* port, uint8_t pin)
 {
     // GPIO port 5 is input-only
-    if((uint32_t)(port) == (uint32_t)(P5)) return;
+    if ((uint32_t)(port) == (uint32_t)(&P5)) return;
 
     *REG(port, PnDR) ^= (1 << pin);
 }
 
-uint8_t gpio_readPin(const void *port, uint8_t pin)
+uint8_t gpio_readPin(const void* port, uint8_t pin)
 {
     return ((*REG(port, PnPORT)) >> pin) & 0x01;
 }

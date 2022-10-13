@@ -259,7 +259,10 @@ mk22fn512_def = mk22fn512_def + miosix_cm4f_def
 ## R5F61668
 ##
 
-r5f61668_src = ['platform/mcu/R5F6166x/boot/startup.c']
+r5f61668_src = ['platform/mcu/R5F6166x/boot/startup.c',
+                'platform/mcu/R5F6166x/drivers/delays.c',
+                'platform/mcu/R5F6166x/drivers/gpio.c'
+                ]
 r5f61668_inc = ['platform/mcu/R5F6166x/device']
 r5f61668_def = {}
 
@@ -604,7 +607,7 @@ targets = [
    'load_addr': ' '},
   ]
 
-radio_tool  = find_program('radio_tool',                       required:true, disabler:true)
+radio_tool  = find_program('radio_tool',                       required:false, disabler:true)
 objcopy     = find_program('objcopy',                          required:false, disabler:true)
 if build_machine.system() == 'linux'
   bin2sgl     = find_program('scripts/bin2sgl.Linux',          required:false, disabler:true)

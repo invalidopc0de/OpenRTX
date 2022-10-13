@@ -21,7 +21,19 @@
 #ifndef HWCONFIG_H
 #define HWCONFIG_H
 
-#include <typedefine.h>
+#ifdef __cplusplus
+extern "C" {
+#endif
+
 #include <iodefine.h>
+#include <typedefine.h>
+
+/* Signalling LEDs */
+#define GREEN_LED &PI, 1
+#define RED_LED &PI, 0
+
+#ifdef __cplusplus
+}
+#endif
 
 #endif

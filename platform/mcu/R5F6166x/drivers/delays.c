@@ -1,8 +1,5 @@
 /***************************************************************************
- *   Copyright (C) 2020 by Federico Amedeo Izzo IU2NUO,                    *
- *                         Niccolò Izzo IU2KIN,                            *
- *                         Frederik Saraci IU2NRO,                         *
- *                         Silvano Seva IU2KWO                             *
+ *   Copyright (C) 2020 - 2022 by Mark Saunders                            *
  *                                                                         *
  *   This program is free software; you can redistribute it and/or modify  *
  *   it under the terms of the GNU General Public License as published by  *
@@ -18,21 +15,56 @@
  *   along with this program; if not, see <http://www.gnu.org/licenses/>   *
  ***************************************************************************/
 
-#include <stdio.h>
-#include <interfaces/platform.h>
 #include <interfaces/delays.h>
+#include <iodefine.h>
+#include <stdint.h>
 
-int main()
+#include "R5F6166x.h"
+
+#define MICROSECOND_DIVIDER 8
+#define MILLISECOND_DIVIDER 8000
+
+static volatile uint32_t timer_counter;
+
+void INT_TGI0A_TPU0(void)
 {
-    platform_init();
+    timer_counter++;
+}
 
-    while(1)
+/**
+ * Implementation of the delay functions for R5F6166x MCU.
+ */
+
+void delayUs(unsigned int useconds)
+{
+}
+
+void delayMs(unsigned int mseconds)
+{
+    // Start timer
+    timer_counter = 0;
+
+    // Reset module
+    MSTP.CRA.BIT._TPUL = 0;
+    // Set countup source
+    TPU0.TCR.BIT.TPSC = 0;
+    // Set clear criteria
+    TPU0.TCR.BIT.CCLR = 1;
+
+    // Set value
+    TPU0.TGRA = MILLISECOND_DIVIDER;
+
+    set_imask_ccr(0);
+    TPU0.TIER.BIT.TGIEA = 1;
+    set_imask_ccr(1);
+
+    TPU.TSTR.BIT.CST0 = 1;
+
+    // Wait until time has elapsed
+    while (timer_counter < mseconds)
     {
-       platform_ledOn(RED);
-       delayMs(1000);
-       platform_ledOff(RED);
-       delayMs(1000);
-    }
+    };
 
-    return 0;
+    // Stop timer
+    TPU.TSTR.BIT.CST0 = 0;
 }
